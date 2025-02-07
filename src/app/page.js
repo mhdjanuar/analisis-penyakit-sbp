@@ -7,6 +7,7 @@ export default function GejalaPage() {
   const [selectedGejala, setSelectedGejala] = useState([]);
   const [showResult, setShowResult] = useState(false);
   const [analysisResult, setAnalysisResult] = useState(null);
+  const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
     async function fetchGejala() {
@@ -37,7 +38,9 @@ export default function GejalaPage() {
   const handleSubmit = async () => {
     if (selectedGejala.length === 0) return;
 
-    // Ambil ID dari gejala yang dipilih
+    setIsLoading(true);
+    setShowResult(false);
+
     const selectedIds = gejalaList
       .filter((gejala) => selectedGejala.includes(gejala.name))
       .map((gejala) => gejala.id);
@@ -51,6 +54,8 @@ export default function GejalaPage() {
       setShowResult(true);
     } catch (error) {
       console.error("Error fetching analysis:", error);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -59,6 +64,7 @@ export default function GejalaPage() {
     setShowResult(false);
     setAnalysisResult(null);
     setSearch("");
+    setIsLoading(false);
   };
 
   return (
@@ -100,14 +106,40 @@ export default function GejalaPage() {
         <div className="flex gap-3 mt-4">
           <button
             onClick={handleSubmit}
-            className={`flex-1 text-lg py-2 rounded-lg ${
+            className={`flex-1 text-lg py-2 rounded-lg flex items-center justify-center ${
               selectedGejala.length === 0
                 ? "bg-gray-300 text-gray-600 cursor-not-allowed"
                 : "bg-blue-600 text-white hover:bg-blue-700"
             } transition`}
-            disabled={selectedGejala.length === 0}
+            disabled={selectedGejala.length === 0 || isLoading}
           >
-            Lanjutkan
+            {isLoading ? (
+              <>
+                <svg
+                  className="animate-spin h-5 w-5 mr-2 text-white"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <circle
+                    className="opacity-25"
+                    cx="12"
+                    cy="12"
+                    r="10"
+                    stroke="currentColor"
+                    strokeWidth="4"
+                  ></circle>
+                  <path
+                    className="opacity-75"
+                    fill="currentColor"
+                    d="M4 12a8 8 0 018-8v8H4z"
+                  ></path>
+                </svg>
+                Menganalisis...
+              </>
+            ) : (
+              "Lanjutkan"
+            )}
           </button>
           <button
             onClick={handleReset}
@@ -118,12 +150,35 @@ export default function GejalaPage() {
         </div>
 
         {/* Hasil Analisis */}
-        {showResult && analysisResult && (
+        {showResult && (
           <div className="mt-6 p-4 bg-gray-50 rounded-lg shadow">
             <h3 className="text-lg font-semibold text-gray-800 mb-2">
               Hasil Analisis:
             </h3>
-            {analysisResult.name ? (
+            {isLoading ? (
+              <div className="flex justify-center items-center py-4">
+                <svg
+                  className="animate-spin h-6 w-6 text-blue-500"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <circle
+                    className="opacity-25"
+                    cx="12"
+                    cy="12"
+                    r="10"
+                    stroke="currentColor"
+                    strokeWidth="4"
+                  ></circle>
+                  <path
+                    className="opacity-75"
+                    fill="currentColor"
+                    d="M4 12a8 8 0 018-8v8H4z"
+                  ></path>
+                </svg>
+              </div>
+            ) : analysisResult?.name ? (
               <>
                 <p className="text-gray-700">
                   Penyakit: <b>{analysisResult.name}</b>
